@@ -1,13 +1,39 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { signInStart, signInFailure, signInSuccess } from "../redux/userSlice";
 import { useDispatch, useSelector } from "react-redux";
 import Oauth from "../components/Oauth";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 const SignIn = () => {
   const [formData, setFormData] = useState({});
   const { loading, error } = useSelector((state) => state.user);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
+
+
+
+  // Display flash message using toast
+
+const flashMessage = localStorage.getItem("flashMessage");
+const flashMessageType = localStorage.getItem("flashMessageType");
+
+// Remove flash message from local storage
+useEffect(() => {
+  localStorage.removeItem("flashMessage");
+  localStorage.removeItem("flashMessageType");
+}, []);
+
+// Display flash message using toast
+useEffect(() => {
+  if (flashMessage && flashMessageType) {
+    toast.success(flashMessage,{autoClose:1000,theme:"colored"});
+  }
+}, [flashMessage, flashMessageType]);
+
+
+
   function handleChange(e) {
     setFormData({
       ...formData,
@@ -75,6 +101,7 @@ const SignIn = () => {
         </Link>
       </div>
       {error && <p className='text-red-600 mt-3'>{error}</p>}
+      <ToastContainer />
     </div>
   );
 };

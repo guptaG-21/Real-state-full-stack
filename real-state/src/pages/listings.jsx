@@ -15,6 +15,8 @@ import {
 } from "react-icons/fa";
 import Contact from "../components/Contact";
 import { useSelector } from "react-redux";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 const Listings = () => {
   SwiperCore.use([Navigation]);
   const [listing, setListing] = useState(null);
@@ -24,6 +26,22 @@ const Listings = () => {
   const [contact, setContact] = useState(false);
   const params = useParams();
   const { curruser } = useSelector((state) => state.user);
+  
+
+
+  const flashMessage = localStorage.getItem("flashMessage");
+  useEffect(() => {
+    localStorage.removeItem("flashMessage");
+  }, []);
+
+  // Display flash message using toast
+  useEffect(() => {
+    if (flashMessage ) {
+      toast.success(flashMessage, { autoClose: 1000, theme: "colored" });
+    }
+  }, [flashMessage,]);
+
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -47,6 +65,7 @@ const Listings = () => {
     };
     fetchData();
   }, [params.listingID]);
+  console.log(error);
   console.log(listing);
   return (
     <main>
@@ -104,7 +123,7 @@ const Listings = () => {
                 </p>
                 {listing.offer && (
                   <p className='bg-green-700 w-full max-w-[200px] text-white text-center p-1 rounded-md'>
-                    ₹ {+listing.regularPrice - +listing.discountPrice} OFF
+                    ₹ {+listing.regularPrice - +listing.discountPrice } OFF
                   </p>
                 )}
               </div>
@@ -158,6 +177,7 @@ const Listings = () => {
           </strong>
         </p>
       )}
+      <ToastContainer />
     </main>
   );
 };
