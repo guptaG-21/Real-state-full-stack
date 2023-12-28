@@ -50,13 +50,13 @@ function Search() {
 
     const fetchData = async () => {
       setLoading(true);
-      setShowMore(false)
+      setShowMore(false);
       const searchQuery = urlParams.toString();
       const listingData = await fetch(`/api/listing/get?${searchQuery}`);
       const data = await listingData.json();
-      if (data.length < 8) {
+      if (data.length > 8) {
         setShowMore(true);
-      } else {
+      } else{
         setShowMore(false);
       }
       setListing(data);
@@ -124,6 +124,7 @@ function Search() {
     }
     setListing([...listing, ...data]);
   };
+  console.log(showMore);
   return (
     <div className='flex flex-col sm:flex-row gap-4 p-2'>
       <div className='md:min-h-screen border-b-2 p-7 md:border-r-2  '>

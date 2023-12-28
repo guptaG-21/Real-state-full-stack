@@ -20,7 +20,7 @@ const listingSchema = new mongoose.Schema(
     },
     discountPrice: {
       type: Number,
-      required: true,
+      // required: true,
     },
     bathrooms: {
       type: Number,
@@ -58,5 +58,5 @@ const listingSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const listingModel = mongoose.model("Listing",listingSchema);
+const listingModel = mongoose.model("Listing", listingSchema);
 export default listingModel;

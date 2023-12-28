@@ -8,6 +8,7 @@ import {
 import { app } from "../firebase";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 const CreateListing = () => {
   const [file, setFile] = useState([]);
   const [formData, setFormData] = useState({
@@ -128,12 +129,13 @@ const CreateListing = () => {
         body: JSON.stringify({ ...formData, userRef: curruser._id }),
       });
       const data = await res.json();
-      console.log(data);
       if (data.success === false) {
         setError(data.message);
         setLoading(false);
+        
       }
       setLoading(false);
+      localStorage.setItem("flashMessage","listing created!");
       navigate(`/listing/${data._id}`);
     } catch (error) {
       setError(error.message);
@@ -236,6 +238,7 @@ const CreateListing = () => {
                 id='bedrooms'
                 min={1}
                 max={10}
+                defaultValue={1}
                 className='p-3 rounded-lg border '
                 checked={formData.bedrooms}
                 onChange={handleChange}
@@ -248,6 +251,7 @@ const CreateListing = () => {
                 id='bathrooms'
                 min={1}
                 max={10}
+                defaultValue={1}
                 className='p-3 rounded-lg border '
                 checked={formData.bathrooms}
                 onChange={handleChange}

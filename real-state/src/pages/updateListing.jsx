@@ -8,6 +8,8 @@ import {
 import { app } from "../firebase";
 import { useSelector } from "react-redux";
 import { useParams,useNavigate } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 const UpdateListing = () => {
   const [file, setFile] = useState([]);
   const [formData, setFormData] = useState({
@@ -82,15 +84,16 @@ const UpdateListing = () => {
         (snapshot) => {
           const progress =
             (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          console.log(progress);
         },
         (error) => {
           reject(error);
+          toast.error("Image upload failed (max 2mb per image)!",{autoClose:2000,theme:"colored"})
         },
         () => {
           getDownloadURL(uploadTask.snapshot.ref).then((downloadUrl) => {
             resolve(downloadUrl);
           });
+          toast.info("file uploaded,wait to reflect",{autoClose:1500,theme:"colored"})
         }
       );
     });
@@ -100,6 +103,7 @@ const UpdateListing = () => {
       ...formData,
       imageUrl: formData.imageUrl.filter((_, i) => i !== index),
     });
+    toast.success("Deleted!",{autoClose:500,theme:"colored"})
   };
 
   const handleChange = (e) => {
@@ -148,6 +152,7 @@ const UpdateListing = () => {
         setLoading(false);
       }
       setLoading(false);
+      localStorage.setItem("flashMessage","listing updated Successfully!");
       navigate(`/listing/${data._id}`)
     } catch (error) {
       setError(error.message);
@@ -326,9 +331,6 @@ const UpdateListing = () => {
               {uploading ? "uploading..." : "upload"}
             </button>
           </div>
-          <p className='text-red-600 text-sm'>
-            {imageUploadError && imageUploadError}
-          </p>
 
           {formData.imageUrl.length > 0 &&
             formData.imageUrl.map((url, index) => (
@@ -359,6 +361,7 @@ const UpdateListing = () => {
           <p className='text-red-600'>{error}</p>
         </div>
       </form>
+      <ToastContainer />
     </main>
   );
 };

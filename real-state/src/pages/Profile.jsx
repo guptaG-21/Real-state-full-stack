@@ -21,6 +21,9 @@ import {
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 const Profile = () => {
   const { curruser, loading, error } = useSelector((state) => state.user);
   const fileRef = useRef(null);
@@ -28,13 +31,12 @@ const Profile = () => {
   const [filePerc, setFilePerc] = useState(0);
   const [uploadError, setUploadError] = useState(false);
   const [formData, setFormData] = useState({});
-  const [updateSuccess, setUpdateSuccess] = useState(false);
+  // const [updateSuccess, setUpdateSuccess] = useState(false);
   const [listingError, setListingError] = useState(false);
   const [listing, setListing] = useState([]);
   const [openListing, setOpenListing] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  console.log(listing);
   useEffect(() => {
     if (file) {
       handleFileUpload(file);
@@ -54,14 +56,20 @@ const Profile = () => {
           (snapshot.bytesTransferred / snapshot.totalBytes) * 100
         );
         setFilePerc(progress);
+        toast(`${progress} % uploaded photo`,{autoClose:500})
       },
 
       (error) => {
         setUploadError(true);
+        toast.error("error");
       },
       () => {
         getDownloadURL(uploadTask.snapshot.ref).then((downloadUrl) => {
           setFormData({ ...formData, avatar: downloadUrl });
+          toast.info("profile uploaded,wait to reflect", {
+            autoClose: 1500,
+            theme: "colored",
+          });
         });
       }
     );
@@ -81,9 +89,17 @@ const Profile = () => {
       const data = await res.json();
       if (data.success === false) {
         dispatch(updateFailure(data.message));
+        toast.error("updating failure!", {
+          theme: "colored",
+          autoClose: 1000,
+        });
         return;
       }
       dispatch(updateSuccessful(data));
+      toast.success("updated Successfully!", {
+        theme: "colored",
+        autoClose: 1000,
+      });
       setUpdateSuccess(true);
       console.log("yes");
     } catch (error) {
@@ -99,6 +115,10 @@ const Profile = () => {
   //deleting the user
   const handleDelete = async () => {
     try {
+      toast.success("updating failure!", {
+        theme: "colored",
+        autoClose: 1000,
+      });
       dispatch(deleteStart());
       const deletedUser = await fetch(`api/user/delete/${curruser._id}`, {
         method: "DELETE",
@@ -106,9 +126,14 @@ const Profile = () => {
       const data = await deletedUser.json();
       if (data.success === false) {
         dispatch(deleteFailure(data.message));
+        toast.error("failed to delete!", { theme: "colored", autoClose: 1000 });
         return;
+      } else {
+        dispatch(deleteSuccessful(data));
+        toast.success("User Deleted successfully!", { autoClose: 1000 });
       }
-      dispatch(deleteSuccessful(data));
+      localStorage.setItem("flashMessage", "User deleted successfully!");
+      localStorage.setItem("flashMessageType", "success");
       navigate("/sign-in");
     } catch (error) {
       dispatch(deleteFailure(error.message));
@@ -123,14 +148,21 @@ const Profile = () => {
       const data = await res.json();
       if (data.success == false) {
         dispatch(signOutFailure(data.message));
+        toast.error("failed to SignOut!", {
+          theme: "colored",
+          autoClose: 1000,
+        });
         return;
       }
+      localStorage.setItem("flashMessage", "User Signed out successfully!");
+      localStorage.setItem("flashMessageType", "success");
       dispatch(signOutSuccessful(data));
     } catch (error) {
       dispatch(signOutFailure(error.message));
     }
   };
 
+  //getting the listings to show on page
   const handleShowListings = async () => {
     try {
       setListingError(false);
@@ -145,13 +177,14 @@ const Profile = () => {
       setListingError(error.message);
     }
   };
+  //close open thing for listings
   const combinedClick = () => {
     if (!openListing) {
       handleShowListings();
     }
     setOpenListing(!openListing);
   };
-
+  //deleting the listing
   const deleteListing = async (listingId) => {
     try {
       const res = await fetch(`/api/listing/delete/${listingId}`, {
@@ -163,13 +196,16 @@ const Profile = () => {
       }
       console.log(data);
       setListing((prev) => prev.filter((listing) => listing._id !== listingId));
+      toast.info("listing has deleted!", { autoClose: 1000, theme: "colored" });
     } catch (error) {
       console.log(error.message);
     }
   };
+
   return (
     <div className='p-3 max-w-lg mx-auto '>
       <h2 className=' text-center font-semibold my-7 text-3xl '>Profile</h2>
+      {/* <button onClick={notify}>delete</button> */}
       <form onSubmit={handleUpdate} className='flex flex-col gap-4'>
         <input
           onChange={(e) => setFile(e.target.files[0])}
@@ -184,19 +220,6 @@ const Profile = () => {
           src={formData.avatar || curruser.avatar}
           alt='profile'
         />
-        {uploadError ? (
-          <span className='text-red-600 font-semibold'>
-            Something is wrong with image upload!(please keep it lees than 2 mb)
-          </span>
-        ) : filePerc > 0 && filePerc < 100 ? (
-          <span className='text-green-400'>{`uploading ${filePerc}%`}</span>
-        ) : filePerc === 100 ? (
-          <span className='text-green-600 font-semibold'>
-            Image uploaded successfully..!
-          </span>
-        ) : (
-          ""
-        )}
         <input
           className='rounded-lg border border-blue-200  p-3'
           type='text'
@@ -235,12 +258,13 @@ const Profile = () => {
         </Link>
       </form>
       <div className='flex justify-between mt-5 '>
-        <span
+        <button
           onClick={handleDelete}
           className='text-red-600 font-semibold cursor-pointer border border-gray-100 border-b-red-600 uppercase'
         >
           Delete Account
-        </span>
+        </button>
+
         <span
           onClick={handleSignOut}
           className='text-red-600 font-semibold cursor-pointer border border-gray-100 border-b-red-600 uppercase'
@@ -299,12 +323,8 @@ const Profile = () => {
             </div>
           )
         : ""}
-      {listingError ? <p className='text-red-600'>{listingError}</p> : ""}
-      {updateSuccess ? (
-        <p className='text-green-600'>Successfully updated!</p>
-      ) : (
-        ""
-      )}
+      {listingError ? toast.error("Error while fetching the listings",{autoClose:1200,theme:"colored"}):"" }
+      <ToastContainer />
     </div>
   );
 };
